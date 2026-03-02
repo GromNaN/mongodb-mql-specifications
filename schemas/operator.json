@@ -50,8 +50,10 @@
                 "fieldQuery",
                 "pipeline",
                 "updatePipeline",
+                "untypedPipeline",
                 "window",
                 "expression",
+                "expressionMap",
                 "geometry",
                 "unprefixedFieldPath",
                 "timeUnit",
@@ -154,14 +156,18 @@
                     "type": "array",
                     "items": {
                         "anyOf": [
-                            { "$ref": "#/definitions/ReturnType" },
+                            {
+                                "$ref": "#/definitions/ReturnType"
+                            },
                             {
                                 "type": "object",
                                 "properties": {
                                     "name": {
                                         "$ref": "#/definitions/ReturnType"
                                     },
-                                    "generic": { "type": "string" }
+                                    "generic": {
+                                        "type": "string"
+                                    }
                                 },
                                 "required": ["name"]
                             }
@@ -230,14 +236,18 @@
                     "type": "array",
                     "items": {
                         "anyOf": [
-                            { "$ref": "#/definitions/ArgumentType" },
+                            {
+                                "$ref": "#/definitions/ArgumentType"
+                            },
                             {
                                 "type": "object",
                                 "properties": {
                                     "name": {
                                         "$ref": "#/definitions/ArgumentType"
                                     },
-                                    "generic": { "type": "string" }
+                                    "generic": {
+                                        "type": "string"
+                                    }
                                 },
                                 "required": ["name"]
                             }

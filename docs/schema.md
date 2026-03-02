@@ -242,11 +242,13 @@ For aggregation pipeline stages or query operators, the following types can be u
 - `fieldQuery`: Field-level query operator (inside a field selector)
 - `window`: User in `$setWindowFields`
 - `searchOperator`: MongoDB Atlas Search operator
-- `pipeline` and `updatePipeline`: specific pipelines types
+- `pipeline` and `updatePipeline`: specific pipelines types accepting the same document type as the parent operator (e.g. `$facet`)
+- `untypedPipeline`: An aggregation pipeline on an unknown document type, used for operators that accept sub-pipelines on different collections (e.g. `$lookup`)
 
 ##### Special Types
 
 - `expression`: Any aggregation expression
+- `expressionMap`: An object where all values must be an aggregation expression
 - `geoPoint`: GeoJSON point specification
 - `unprefixedFieldPath`: Same as a `fieldPath`, but without the `$` prefix
 
