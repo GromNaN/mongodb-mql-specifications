@@ -39,11 +39,10 @@ arguments:
     optional: true
     type:
       - int
-    valueMin: 1
-    valueMax: 1000
     description: |
       Maximum number of documents to send to the Voyage AI reranking model. Value must be
       between 1 and 1000. If omitted, all documents in the pipeline are sent for reranking.
+      Defaults to all documents up to the Voyage AI API limit.
 tests:
   - name: Rerank by text relevance
     link: https://www.mongodb.com/docs/vector-search/query/aggregation-stages/rerank/#examples
@@ -72,3 +71,30 @@ tests:
           title: 1
           plot: 1
           rerankScore: 1
+  - name: Rerank after vector search
+    link: https://www.mongodb.com/docs/vector-search/query/aggregation-stages/rerank/#examples
+    pipeline:
+      - $vectorSearch:
+          index: vector_index
+          path: plot_embedding
+          queryVector:
+            - -0.0016261312
+            - -0.028070757
+            - -0.011342932
+          numCandidates: 150
+          limit: 50
+      - $rerank:
+          model: rerank-2.5
+          query:
+            text: a group of heroes band together to stop a powerful enemy and save the world
+          path:
+            - title
+            - plot
+          numDocsToRerank: 50
+      - $limit: 10
+      - $project:
+          _id: 0
+          title: 1
+          plot: 1
+          score:
+            $meta: score
