@@ -1,6 +1,6 @@
 # $schema: ../../schemas/operator.json
 name: $convert
-link: https://www.mongodb.com/docs/upcoming/reference/operator/aggregation/convert/
+link: https://www.mongodb.com/docs/manual/reference/operator/aggregation/convert/
 minVersion: '4.0'
 type:
   - resolvesToAny
@@ -41,7 +41,7 @@ arguments:
       If unspecified, $convert uses base 10.
 tests:
   - name: Example
-    link: https://www.mongodb.com/docs/upcoming/reference/operator/aggregation/convert/#example
+    link: https://www.mongodb.com/docs/manual/reference/operator/aggregation/convert/#example
     pipeline:
       - $addFields:
           convertedPrice:
@@ -95,7 +95,7 @@ tests:
             - bsonType: Number
             - bsonType: String
   - name: Convert Hexadecimal String to Integer
-    link: https://www.mongodb.com/docs/upcoming/reference/operator/aggregation/convert/#base-conversion
+    link: https://www.mongodb.com/docs/manual/reference/operator/aggregation/convert/#base-conversion
     pipeline:
       - $project:
           decimalValue:
@@ -112,7 +112,7 @@ tests:
           types:
             - bsonType: String
   - name: Convert Integer to Binary String
-    link: https://www.mongodb.com/docs/upcoming/reference/operator/aggregation/convert/#base-conversion
+    link: https://www.mongodb.com/docs/manual/reference/operator/aggregation/convert/#base-conversion
     pipeline:
       - $project:
           binaryString:
