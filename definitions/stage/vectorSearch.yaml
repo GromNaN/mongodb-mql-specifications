@@ -6,13 +6,16 @@ type:
   - inputStage
 encode: object
 description: |
-  The $vectorSearch stage performs an ANN or ENN search on a vector in the specified field.
+  The $vectorSearch stage performs an ANN or ENN semantic search on vector embeddings in the specified field.
+  Supports searching top-level, nested, and arrays of vector embeddings.
+  NOTE: $vectorSearch is only available for MongoDB Atlas clusters and self-managed deployments running MongoDB 8.2+.
 arguments:
   - name: index
     type:
       - string
     description: |
-      Name of the Atlas Vector Search index to use.
+      Name of the Atlas Vector Search index to use. Atlas Vector Search doesn't return results if you
+      misspell the index name or if the specified index doesn't already exist on the cluster.
   - name: limit
     type:
       - int
@@ -22,31 +25,80 @@ arguments:
     type:
       - string
     description: |
-      Indexed vector type field to search.
+      Indexed vector type field to search. Use dot notation to specify the path to embedded fields.
   - name: queryVector
     type:
-      - array       # of numbers
+      - array       # of numbers (float32, int8, or int1 BinData vectors)
     description: |
-      Array of numbers that represent the query vector. The number type must match the indexed field value type.
+      Array of numbers of float32, BSON BinData vectors with subtype float32, or BSON BinData vectors with
+      subtype int1 or int8 type that represent the query vector. The array size must match the number of
+      vector dimensions specified in the index definition for the field.
   - name: exact
     optional: true
     type:
       - bool
     description: |
-      This is required if numCandidates is omitted. false to run ANN search. true to run ENN search.
+      This is required if numCandidates is omitted. Flag that specifies whether to run ENN or ANN search.
+      Set to false to run ANN search, or true to run ENN search. If omitted, defaults to false.
   - name: filter
     optional: true
     type:
       - query
     description: |
-      Any match query that compares an indexed field with a boolean, date, objectId, number (not decimals), string, or UUID to use as a pre-filter.
+      MQL expression that uses an indexed field for pre-filtering the documents before the vector search.
+      You can filter on boolean, date, objectId, number (not decimals), string, or UUID values.
+      If you specify a nestedRoot in the index definition, the filter option applies to fields at the
+      nested level. Use parentFilter to filter on root-level fields. If you specify both, Atlas Vector
+      Search combines them using AND.
   - name: numCandidates
     optional: true
     type:
       - int
     description: |
       This field is required if exact is false or omitted.
-      Number of nearest neighbors to use during the search. Value must be less than or equal to (<=) 10000. You can't specify a number less than the number of documents to return (limit).
+      Number of nearest neighbors to use during the search. Value must be less than or equal to (<=) 10000.
+      You can't specify a number less than the number of documents to return (limit).
+      Recommended to be at least 20 times higher than limit to increase accuracy.
+  - name: nestedOptions
+    optional: true
+    type:
+      - object
+    description: |
+      Configures how Atlas Vector Search scores documents when querying a vector search index that has
+      nestedRoot specified in the index definition (i.e. nested or array embeddings). Controls how
+      individual scores from multiple matching child documents are combined into a single score for
+      the returned parent document. If omitted, scoreMode defaults to "max".
+  - name: parentFilter
+    optional: true
+    type:
+      - query
+    description: |
+      MQL expression that uses an indexed top-level field for pre-filtering documents before the vector
+      search. You can filter on boolean, date, objectId, number (not decimals), string, or UUID values.
+      This option is only valid if the index definition specifies a nestedRoot field. Atlas Vector Search
+      filters top-level documents before filtering nested documents. If you specify both filter and
+      parentFilter, Atlas Vector Search combines them using AND.
+  - name: returnStoredSource
+    optional: true
+    type:
+      - bool
+    description: |
+      Flag that specifies whether to perform a full document lookup on the backend database (false) or
+      return only stored source fields directly from Atlas Vector Search (true). If omitted, defaults
+      to false.
+  - name: explainOptions
+    optional: true
+    type:
+      - object
+    description: |
+      Trace a list of vectors (identified by their _id) in an explain executionStats query. You can't
+      use this option without explain.
+  - name: searchNodePreference
+    optional: true
+    type:
+      - object
+    description: |
+      Specifies a preference for which search node to use when running the query.
 tests:
   - name: ANN Basic
     link: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-stage/#ann-examples
@@ -105,5 +157,43 @@ tests:
           _id: 0
           plot: 1
           title: 1
+          score:
+            $meta: vectorSearchScore
+  - name: Nested Embeddings ANN with nestedOptions and parentFilter
+    link: https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-stage/
+    pipeline:
+      - $vectorSearch:
+          index: vector_index
+          path: reviews.comments_embedding
+          queryVector: # skip other numbers, not relevant to the test
+            - -0.0016261312
+            - -0.028070757
+            - -0.011342932
+          numCandidates: 100
+          limit: 5
+          filter:
+            reviews.date:
+              $gte: !bson_utcdatetime '2010-01-01T00:00:00.000Z'
+          parentFilter:
+            address.country:
+              $in:
+                - United States
+            bedrooms:
+              $gte: 2
+              $lte: 3
+            property_type:
+              $in:
+                - Apartment
+                - House
+          nestedOptions:
+            scoreMode: avg
+      - $project:
+          _id: 0
+          name: 1
+          address: 1
+          neighborhood_overview: 1
+          bedrooms: 1
+          property_type: 1
+          reviews.comments: 1
           score:
             $meta: vectorSearchScore
