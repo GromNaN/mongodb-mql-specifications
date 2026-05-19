@@ -1,0 +1,56 @@
+# $schema: ../../schemas/operator.json
+name: $score
+link: https://www.mongodb.com/docs/manual/reference/operator/aggregation/score/
+minVersion: '8.1'
+type:
+  - stage
+encode: object
+description: |
+  Computes a value from each document and attaches it as score metadata (accessible via {$meta: "score"}),
+  with optional normalization, weighting, and breakdown details. Can be placed anywhere in an aggregation
+  pipeline; in particular, it is a primary way to produce scored input pipelines for $rankFusion / $scoreFusion,
+  where input pipelines must begin with $search / $vectorSearch / $score.
+arguments:
+  - name: score
+    type:
+      - expression
+    description: |
+      An expression that computes the score value to attach as metadata to each document.
+  - name: normalization
+    type:
+      - string
+    description: |
+      Normalizes the score before attaching it. Supported values are none, sigmoid, and minMaxScaler.
+  - name: weight
+    optional: true
+    type:
+      - double
+    description: |
+      A non-negative multiplier applied to the computed score after normalization.
+  - name: scoreDetails
+    optional: true
+    type:
+      - bool
+    default: false
+    description: |
+      Set to true to include detailed scoring information accessible via {$meta: "scoreDetails"}.
+tests:
+  - name: Constant score
+    link: https://www.mongodb.com/docs/manual/reference/operator/aggregation/score/#examples
+    pipeline:
+      - $score:
+          score:
+            $const: 1.0
+          normalization: none
+  - name: Field expression with sigmoid normalization
+    link: https://www.mongodb.com/docs/manual/reference/operator/aggregation/score/#examples
+    pipeline:
+      - $score:
+          score:
+            $meta: vectorSearchScore
+          normalization: sigmoid
+          weight: 0.8
+          scoreDetails: true
+      - $addFields:
+          score:
+            $meta: score
