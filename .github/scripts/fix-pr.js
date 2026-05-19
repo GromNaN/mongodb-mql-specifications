@@ -26,7 +26,7 @@ const reviewComments = JSON.parse(fs.readFileSync("/tmp/review_comments.json", "
 const reviewBody = JSON.parse(fs.readFileSync("/tmp/review_body.json", "utf8")) || "";
 const allReviewBodies = JSON.parse(fs.readFileSync("/tmp/review_bodies.json", "utf8"));
 
-if (reviewComments.length === 0 && !reviewBody) {
+if (reviewComments.length === 0 && !reviewBody && allReviewBodies.length === 0) {
   console.log("No review comments found. Nothing to do.");
   process.exit(0);
 }

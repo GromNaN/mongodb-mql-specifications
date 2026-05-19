@@ -103,7 +103,7 @@ const TOOLS = [
   {
     name: "validate_spec",
     description:
-      "Run local validations on spec files: yamlfix (formatting) and the JSON schema validator. " +
+      "Run local validations on spec files: yamlfix (checks formatting) and the JSON schema validator. " +
       "Call this after writing files to catch errors before committing. " +
       "Returns stdout/stderr output and whether validation passed. " +
       "Note: yamlfix is scoped to provided paths; JSON schema validation always runs on the entire definitions tree.",
@@ -163,7 +163,7 @@ async function executeTool(name, input) {
           if (prsRes.ok) {
             for (const pr of await prsRes.json()) {
               const filesRes = await fetch(
-                `https://api.github.com/repos/${repo}/pulls/${pr.number}/files`,
+                `https://api.github.com/repos/${repo}/pulls/${pr.number}/files?per_page=100`,
                 { headers: githubHeaders(repo) }
               );
               if (!filesRes.ok) continue;
