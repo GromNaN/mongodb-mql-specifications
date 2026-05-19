@@ -252,7 +252,7 @@ async function executeTool(name, input) {
 // Claude agentic loop
 // ---------------------------------------------------------------------------
 
-async function runAgentLoop({ systemPrompt, userMessage, extraTools = [], executeToolFn = executeTool, groveApiKey, maxIterations = 20 }) {
+async function runAgentLoop({ systemPrompt, userMessage, extraTools = [], executeToolFn = executeTool, groveApiKey, maxIterations = 50 }) {
   const tools = [...TOOLS, ...extraTools];
   const messages = [{ role: "user", content: userMessage }];
 
