@@ -32,7 +32,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           TICKET_SLUG=$(echo "$JIRA_KEY" | tr '[:upper:]' '[:lower:]')
-          PR_JSON=$(gh pr list --repo "$GH_REPO" --state open --json number,headRefName \
+          PR_JSON=$(gh pr list --repo "$GH_REPO" --state open --limit 200 --json number,headRefName \
             --jq "[.[] | select(.headRefName | startswith(\"${TICKET_SLUG}-\"))] | .[0]")
 
           PR_NUMBER=$(echo "$PR_JSON" | jq -r '.number // empty')
@@ -62,7 +62,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '24'
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4

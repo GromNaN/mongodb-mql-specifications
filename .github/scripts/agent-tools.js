@@ -195,19 +195,22 @@ async function executeTool(name, input) {
     }
 
     case "list_files": {
-      const dir = path.join(GITHUB_WORKSPACE, input.directory);
+      const dir = path.resolve(GITHUB_WORKSPACE, input.directory);
+      if (!dir.startsWith(path.resolve(GITHUB_WORKSPACE))) return { error: "Path outside workspace." };
       if (!fs.existsSync(dir)) return { error: `Directory not found: ${input.directory}` };
       return { files: fs.readdirSync(dir).filter((f) => f.endsWith(".yaml")) };
     }
 
     case "read_file": {
-      const filePath = path.join(GITHUB_WORKSPACE, input.path);
+      const filePath = path.resolve(GITHUB_WORKSPACE, input.path);
+      if (!filePath.startsWith(path.resolve(GITHUB_WORKSPACE))) return { error: "Path outside workspace." };
       if (!fs.existsSync(filePath)) return { error: `File not found: ${input.path}` };
       return { content: fs.readFileSync(filePath, "utf8") };
     }
 
     case "write_file": {
-      const filePath = path.join(GITHUB_WORKSPACE, input.path);
+      const filePath = path.resolve(GITHUB_WORKSPACE, input.path);
+      if (!filePath.startsWith(path.resolve(GITHUB_WORKSPACE))) return { error: "Path outside workspace." };
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
       const content = input.content.endsWith("\n") ? input.content : input.content + "\n";
       fs.writeFileSync(filePath, content, "utf8");
@@ -217,7 +220,6 @@ async function executeTool(name, input) {
     case "validate_spec": {
       const results = {};
       const targetPaths = (input.paths ?? []).map((p) => path.join(GITHUB_WORKSPACE, p));
-      const yamlTargets = targetPaths.length ? targetPaths.join(" ") : path.join(GITHUB_WORKSPACE, "definitions");
 
       // yamlfix
       try {

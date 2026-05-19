@@ -63,7 +63,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '24'
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
@@ -85,12 +85,14 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           REVIEW_BODY: ${{ toJson(github.event.review.body) }}
         run: |
-          gh api repos/"$GH_REPO"/pulls/"$PR_NUMBER"/comments \
+          gh api --paginate repos/"$GH_REPO"/pulls/"$PR_NUMBER"/comments \
             --jq '[.[] | {path: .path, line: .line, body: .body, user: .user.login}]' \
+            | jq -s 'add' \
             > /tmp/review_comments.json
 
-          gh api repos/"$GH_REPO"/pulls/"$PR_NUMBER"/reviews \
+          gh api --paginate repos/"$GH_REPO"/pulls/"$PR_NUMBER"/reviews \
             --jq '[.[] | select(.body != "") | {id: .id, user: .user.login, state: .state, body: .body}]' \
+            | jq -s 'add' \
             > /tmp/review_bodies.json
 
           if [ "$EVENT_NAME" = "pull_request_review" ]; then
