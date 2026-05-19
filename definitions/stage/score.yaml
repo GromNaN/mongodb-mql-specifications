@@ -52,6 +52,14 @@ tests:
           score:
             $const: 1.0
           normalization: none
+    schema:
+      movies:
+        _id:
+          types:
+            - bsonType: ObjectId
+        title:
+          types:
+            - bsonType: String
   - name: Field expression with sigmoid normalization and scoreDetails
     link: https://www.mongodb.com/docs/manual/reference/operator/aggregation/score/#examples
     pipeline:
@@ -64,3 +72,16 @@ tests:
       - $addFields:
           score:
             $meta: score
+    schema:
+      movies:
+        _id:
+          types:
+            - bsonType: ObjectId
+        title:
+          types:
+            - bsonType: String
+        plot_embedding:
+          types:
+            - bsonType: Array
+              types:
+                - bsonType: Double
