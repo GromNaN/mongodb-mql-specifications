@@ -1,0 +1,87 @@
+# $schema: ../../schemas/operator.json
+name: $score
+link: https://www.mongodb.com/docs/manual/reference/operator/aggregation/score/
+minVersion: '8.2'
+type:
+  - stage
+encode: object
+description: |
+  Computes and returns a new score as metadata. It also optionally normalizes the input scores,
+  by default to a range between zero and one. Can be placed anywhere in an aggregation pipeline;
+  in particular, it is a primary way to produce scored input pipelines for $rankFusion / $scoreFusion,
+  where input pipelines must begin with $search / $vectorSearch / $score. If multiple $score stages
+  are specified, the last one overrides the score metadata from previous $score stages.
+arguments:
+  - name: score
+    type:
+      - expression
+    description: |
+      Computes a new value from the input scores and stores the value in the $meta keyword "score".
+      Returns an error for non-numeric inputs.
+  - name: scoreDetails
+    optional: true
+    type:
+      - bool
+    default: false
+    description: |
+      Specifies if $score computes and populates the $scoreDetails metadata field for each output
+      document. Set to true to include detailed scoring information (value, description, rawScore,
+      normalization, weight, expression, details) accessible via {$meta: "scoreDetails"}.
+  - name: normalization
+    optional: true
+    type:
+      - string
+    default: none
+    description: |
+      Normalizes the score to the range of 0 to 1. If omitted, defaults to "none". Supported values are:
+      - "none": Does not normalize the score.
+      - "sigmoid": Applies the sigmoid function 1 / (1 + e^-x), where x is the score.
+      - "minMaxScaler": Applies (s - min_s) / (max_s - min_s), where s is the score, min_s is the
+        minimum score, and max_s is the maximum score.
+  - name: weight
+    optional: true
+    type:
+      - double
+    description: |
+      A non-negative number to multiply the score expression by after normalization.
+tests:
+  - name: Constant score
+    link: https://www.mongodb.com/docs/manual/reference/operator/aggregation/score/#examples
+    pipeline:
+      - $score:
+          score:
+            $const: 1.0
+          normalization: none
+    schema:
+      movies:
+        _id:
+          types:
+            - bsonType: ObjectId
+        title:
+          types:
+            - bsonType: String
+  - name: Field expression with sigmoid normalization and scoreDetails
+    link: https://www.mongodb.com/docs/manual/reference/operator/aggregation/score/#examples
+    pipeline:
+      - $score:
+          score:
+            $meta: vectorSearchScore
+          scoreDetails: true
+          normalization: sigmoid
+          weight: 0.8
+      - $addFields:
+          score:
+            $meta: score
+    schema:
+      movies:
+        _id:
+          types:
+            - bsonType: ObjectId
+        title:
+          types:
+            - bsonType: String
+        plot_embedding:
+          types:
+            - bsonType: Array
+              types:
+                - bsonType: Double
